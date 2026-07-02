@@ -19,7 +19,7 @@ ESTILOS = {
 # --------------------------
 # ☁️ CONEXIÓN A GEMINI (GRATIS)
 # --------------------------
-API_KEY = "AQ.Ab8RN6KxKCoA2o-WJQYIai_BeQ26HzBkMilIXGw7TS-cwH2UaQ"
+API_KEY = "AQ.Ab8RN6KbPtKrRmuWtHzRxDU26ZRpQGRGCYNhCEbUmcp3iC0zvQ"
 URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 MOTORES = {
