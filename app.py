@@ -6,14 +6,11 @@ from flask import Flask, render_template_string, request
 import requests
 
 # --------------------------
-# ⚠️ CONFIGURACIÓN OBLIGATORIA
+# ⚠️ CONFIGURACIÓN CORRECTA
 # --------------------------
-# PON AQUÍ TU CLAVE VÁLIDA DE GOOGLE AI STUDIO (empieza por AIzaSy...)
- API_KEY = "AIzaSyAb8RNGKbPtKrRmuWtHzRxDU26ZRpQGRGYNhCEbUmcp3iC0zvQ"
-
+API_KEY = "AIzaSyAb8RNGKbPtKrRmuWtHzRxDU26ZRpQGRGYNhCEbUmcp3iC0zvQ"
 URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
-# ✅ Modelos oficiales que funcionan
 MOTORES = {
     "edith": "gemini-1.5-flash-latest",
     "jarvis": "gemini-1.5-flash-latest",
@@ -27,9 +24,9 @@ esfuerzo_actual = "avanzado"
 # 🎭 PERSONALIDADES
 # --------------------------
 PERSONALIDADES = {
-    "edith": """Eres EDITH: amable, clara, sencilla y directa. Responde siempre en español, con explicaciones fáciles de entender.""",
-    "jarvis": """Eres JARVIS: preciso, técnico, ordenado y profesional. Responde de forma estructurada y clara.""",
-    "max": """Eres MODO MAX: haz análisis completos, profundos y detallados. Responde con toda la información necesaria."""
+    "edith": """Eres EDITH: amable, clara, sencilla y directa. Responde siempre en español.""",
+    "jarvis": """Eres JARVIS: preciso, técnico, ordenado y profesional.""",
+    "max": """Eres MODO MAX: haz análisis completos, profundos y detallados."""
 }
 
 def autotune(modo):
@@ -39,16 +36,16 @@ def autotune(modo):
     }
 
 # --------------------------
-# 🚀 CONEXIÓN CORREGIDA CON GEMINI
+# 🚀 CONEXIÓN CON GEMINI
 # --------------------------
 def obtener_respuesta(texto):
     if not API_KEY or not API_KEY.startswith("AIzaSy"):
-        return "❌ ERROR: La clave API no es válida. Debe empezar por: AIzaSy..."
+        return "❌ ERROR: Clave API inválida"
     
     ajustes = autotune(modo_actual)
     prompt = PERSONALIDADES[modo_actual]
     if esfuerzo_actual == "experto":
-        prompt += "\n---\nNIVEL EXPERTO: Responde con máximo detalle y profundidad."
+        prompt += "\n---\nNIVEL EXPERTO: Responde con máximo detalle."
 
     url = f"{URL_BASE}/{MOTORES[modo_actual]}:generateContent?key={API_KEY}"
     datos = {
@@ -60,10 +57,6 @@ def obtener_respuesta(texto):
         res = requests.post(url, json=datos, timeout=45)
         if res.status_code == 200:
             return res.json()["candidates"][0]["content"]["parts"][0]["text"]
-        elif res.status_code == 400:
-            return "❌ Error 400: Verifica que la clave y el modelo sean correctos."
-        elif res.status_code == 403:
-            return "❌ Error 403: La clave API no tiene permisos o está desactivada."
         else:
             return f"❌ Error: Código {res.status_code}"
     except Exception as e:
@@ -97,12 +90,12 @@ def procesar(entrada):
         elif cmd == "/estado":
             return f"📊 ESTADO\n• Modo: {modo_actual.upper()}\n• Nivel: {esfuerzo_actual.upper()}"
         elif cmd == "/ayuda":
-            return "📚 COMANDOS:\n/edith → Modo amable\n/jarvis → Modo técnico\n/max → Modo completo\n/avanzado /experto → Cambiar nivel\n/estado /ayuda"
+            return "📚 COMANDOS:\n/edith → Modo amable\n/jarvis → Modo técnico\n/max → Modo completo\n/avanzado /experto\n/estado /ayuda"
         return "❌ Comando no reconocido. Usa /ayuda."
     return obtener_respuesta(texto)
 
 # --------------------------
-# 🌐 INTERFAZ ESTILO CHATGPT
+# 🌐 INTERFAZ WEB
 # --------------------------
 PAGINA_HTML = """
 <!DOCTYPE html>
@@ -262,7 +255,7 @@ PAGINA_HTML = """
 """
 
 # --------------------------
-# 🚀 ARRANQUE
+# 🚀 ARRANQUE FINAL
 # --------------------------
 app = Flask(__name__)
 
