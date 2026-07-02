@@ -1,17 +1,19 @@
 # ======================================================
-# SISTEMA IA 100% NUBE - ESTILO CHATGPT CON GEMINI
-# ☁️ Acceso desde cualquier dispositivo
+# SISTEMA IA ESTILO CHATGPT - GEMINI FUNCIONAL
 # ======================================================
 
 from flask import Flask, render_template_string, request
 import requests
 
 # --------------------------
-# ⚙️ CONFIGURACIÓN GEMINI
+# ⚠️ CONFIGURACIÓN OBLIGATORIA
 # --------------------------
-API_KEY = "AIzaSy_TU_CLAVE_AQUÍ"  # ⚠️ PON AQUÍ TU CLAVE REAL (empieza por AIzaSy...)
+# PON AQUÍ TU CLAVE VÁLIDA DE GOOGLE AI STUDIO (empieza por AIzaSy...)
+ API_KEY = "AIzaSyAb8RNGKbPtKrRmuWtHzRxDU26ZRpQGRGYNhCEbUmcp3iC0zvQ"
+
 URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
+# ✅ Modelos oficiales que funcionan
 MOTORES = {
     "edith": "gemini-1.5-flash-latest",
     "jarvis": "gemini-1.5-flash-latest",
@@ -25,9 +27,9 @@ esfuerzo_actual = "avanzado"
 # 🎭 PERSONALIDADES
 # --------------------------
 PERSONALIDADES = {
-    "edith": """Eres EDITH: amable, clara, sencilla y directa. Responde en español, con explicaciones fáciles de entender.""",
-    "jarvis": """Eres JARVIS: preciso, técnico, ordenado y profesional. Responde estructurado y detallado cuando sea necesario.""",
-    "max": """Eres MODO MAX: análisis completo, profundo y detallado. Responde con toda la información posible y explicaciones amplias."""
+    "edith": """Eres EDITH: amable, clara, sencilla y directa. Responde siempre en español, con explicaciones fáciles de entender.""",
+    "jarvis": """Eres JARVIS: preciso, técnico, ordenado y profesional. Responde de forma estructurada y clara.""",
+    "max": """Eres MODO MAX: haz análisis completos, profundos y detallados. Responde con toda la información necesaria."""
 }
 
 def autotune(modo):
@@ -37,16 +39,16 @@ def autotune(modo):
     }
 
 # --------------------------
-# 🚀 CONEXIÓN CON LA IA
+# 🚀 CONEXIÓN CORREGIDA CON GEMINI
 # --------------------------
 def obtener_respuesta(texto):
     if not API_KEY or not API_KEY.startswith("AIzaSy"):
-        return "❌ Error: Clave API inválida o no configurada correctamente."
+        return "❌ ERROR: La clave API no es válida. Debe empezar por: AIzaSy..."
     
     ajustes = autotune(modo_actual)
     prompt = PERSONALIDADES[modo_actual]
     if esfuerzo_actual == "experto":
-        prompt += "\n---\nNIVEL EXPERTO: Haz un análisis muy detallado, completo y profundo."
+        prompt += "\n---\nNIVEL EXPERTO: Responde con máximo detalle y profundidad."
 
     url = f"{URL_BASE}/{MOTORES[modo_actual]}:generateContent?key={API_KEY}"
     datos = {
@@ -58,12 +60,17 @@ def obtener_respuesta(texto):
         res = requests.post(url, json=datos, timeout=45)
         if res.status_code == 200:
             return res.json()["candidates"][0]["content"]["parts"][0]["text"]
-        return f"❌ Error de conexión: Código {res.status_code}. Revisa tu clave o modelo."
+        elif res.status_code == 400:
+            return "❌ Error 400: Verifica que la clave y el modelo sean correctos."
+        elif res.status_code == 403:
+            return "❌ Error 403: La clave API no tiene permisos o está desactivada."
+        else:
+            return f"❌ Error: Código {res.status_code}"
     except Exception as e:
         return f"❌ Sin conexión: {str(e)}"
 
 # --------------------------
-# 🛠️ PROCESAR COMANDOS
+# 🛠️ COMANDOS
 # --------------------------
 def procesar(entrada):
     global modo_actual, esfuerzo_actual
@@ -90,12 +97,12 @@ def procesar(entrada):
         elif cmd == "/estado":
             return f"📊 ESTADO\n• Modo: {modo_actual.upper()}\n• Nivel: {esfuerzo_actual.upper()}"
         elif cmd == "/ayuda":
-            return "📚 COMANDOS DISPONIBLES:\n/edith → Modo amable\n/jarvis → Modo técnico\n/max → Modo completo\n/avanzado /experto → Cambiar nivel\n/estado /ayuda"
-        return "❌ Comando no reconocido. Usa /ayuda para ver opciones."
+            return "📚 COMANDOS:\n/edith → Modo amable\n/jarvis → Modo técnico\n/max → Modo completo\n/avanzado /experto → Cambiar nivel\n/estado /ayuda"
+        return "❌ Comando no reconocido. Usa /ayuda."
     return obtener_respuesta(texto)
 
 # --------------------------
-# 🌐 INTERFAZ WEB ESTILO CHATGPT
+# 🌐 INTERFAZ ESTILO CHATGPT
 # --------------------------
 PAGINA_HTML = """
 <!DOCTYPE html>
@@ -119,58 +126,26 @@ PAGINA_HTML = """
                         acento: '#10A37F',
                         acento_hover: '#15b892'
                     },
-                    fontFamily: {
-                        inter: ['Inter', 'system-ui', 'sans-serif']
-                    }
+                    fontFamily: { inter: ['Inter', 'sans-serif'] }
                 }
             }
         }
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .scrollbar-thin {
-                scrollbar-width: thin;
-                scrollbar-color: #565869 transparent;
-            }
-            .scrollbar-thin::-webkit-scrollbar {
-                width: 8px;
-            }
-            .scrollbar-thin::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            .scrollbar-thin::-webkit-scrollbar-thumb {
-                background-color: #565869;
-                border-radius: 4px;
-            }
-            .mensaje-animado {
-                animation: entrada 0.3s ease-out forwards;
-            }
-            @keyframes entrada {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .typing {
-                display: inline-block;
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: #ECECF1;
-                margin: 0 2px;
-                animation: parpadeo 1.4s infinite ease-in-out;
-            }
-            .typing:nth-child(2) { animation-delay: 0.2s; }
-            .typing:nth-child(3) { animation-delay: 0.4s; }
-            @keyframes parpadeo {
-                0%, 60%, 100% { opacity: 0.3; }
-                30% { opacity: 1; }
-            }
-        }
+    <style>
+        .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #565869 transparent; }
+        .scrollbar-thin::-webkit-scrollbar { width: 8px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #565869; border-radius: 4px; }
+        .mensaje-animado { animation: entrada 0.3s ease-out forwards; }
+        @keyframes entrada { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .typing span { display:inline-block; width:6px; height:6px; border-radius:50%; background:#ECECF1; margin:0 2px; animation: parpadeo 1.4s infinite; }
+        .typing span:nth-child(2) { animation-delay:0.2s; }
+        .typing span:nth-child(3) { animation-delay:0.4s; }
+        @keyframes parpadeo { 0%,60%,100% { opacity:0.3; } 30% { opacity:1; } }
     </style>
 </head>
-<body class="bg-fondo text-texto font-inter min-h-screen flex flex-col">
-    <!-- Barra lateral -->
+<body class="bg-fondo text-texto min-h-screen flex flex-col">
     <aside class="hidden md:flex flex-col w-64 bg-lateral p-4 gap-4">
-        <button onclick="nuevoChat()" class="border border-gray-600 rounded-lg p-3 text-left hover:bg-gray-600 transition-colors">
+        <button onclick="nuevoChat()" class="border border-gray-600 rounded-lg p-3 hover:bg-gray-600 transition">
             <i class="fa fa-plus mr-2"></i> Nuevo chat
         </button>
         <div class="mt-auto text-sm opacity-70">
@@ -179,30 +154,26 @@ PAGINA_HTML = """
         </div>
     </aside>
 
-    <!-- Contenido principal -->
     <main class="flex-1 flex flex-col h-screen">
-        <!-- Encabezado -->
         <header class="border-b border-gray-700 p-4 text-center">
             <h1 class="text-xl font-semibold">🤖 Chat IA - Sistema Gemini</h1>
         </header>
 
-        <!-- Área de mensajes -->
         <div id="chat" class="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-6 max-w-4xl mx-auto w-full">
             <div class="mensaje-animado flex gap-4">
-                <div class="w-8 h-8 rounded-full bg-acento flex items-center justify-center text-sm">IA</div>
-                <div class="flex-1">
+                <div class="w-8 h-8 rounded-full bg-acento flex items-center justify-center">IA</div>
+                <div>
                     <p class="text-lg font-medium mb-1">¡Hola! Soy tu asistente con Gemini</p>
-                    <p class="opacity-90">Escribe cualquier pregunta o usa <code class="bg-gray-700 px-1 rounded">/ayuda</code> para ver todos los comandos disponibles.</p>
+                    <p class="opacity-90">Escribe cualquier pregunta o usa <code class="bg-gray-700 px-1 rounded">/ayuda</code></p>
                 </div>
             </div>
         </div>
 
-        <!-- Caja de entrada -->
         <form id="formulario" class="p-4 border-t border-gray-700">
             <div class="max-w-4xl mx-auto flex gap-3">
                 <input type="text" id="texto" placeholder="Escribe tu mensaje..." required
-                    class="flex-1 bg-ia border border-gray-600 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-1 focus:ring-acento">
-                <button type="submit" class="bg-acento hover:bg-acento_hover text-white px-5 py-3 rounded-xl transition-colors">
+                    class="flex-1 bg-ia border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-acento">
+                <button type="submit" class="bg-acento hover:bg-acento_hover px-5 py-3 rounded-xl">
                     <i class="fa fa-paper-plane"></i>
                 </button>
             </div>
@@ -221,33 +192,28 @@ PAGINA_HTML = """
             const texto = inputTexto.value.trim();
             if (!texto) return;
 
-            // Mostrar mensaje del usuario
             agregarMensaje('Tú', texto, 'bg-usuario');
             inputTexto.value = '';
             inputTexto.disabled = true;
 
-            // Indicador de "escribiendo"
-            const cargando = agregarIndicadorCargando();
+            const cargando = agregarCargando();
 
             try {
-                const respuesta = await fetch('/procesar', {
+                const res = await fetch('/procesar', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({texto: texto})
                 });
-                const datos = await respuesta.json();
-                
+                const datos = await res.json();
                 cargando.remove();
                 agregarMensaje('IA', datos.mensaje, 'bg-ia');
-
-                // Actualizar estado
                 if (datos.estado) {
                     modoLateral.textContent = datos.modo;
                     nivelLateral.textContent = datos.nivel;
                 }
-            } catch (err) {
+            } catch {
                 cargando.remove();
-                agregarMensaje('IA', '❌ Error de conexión. Intenta de nuevo más tarde.', 'bg-ia');
+                agregarMensaje('IA', '❌ Error de conexión. Intenta de nuevo.', 'bg-ia');
             }
 
             inputTexto.disabled = false;
@@ -257,29 +223,21 @@ PAGINA_HTML = """
 
         function agregarMensaje(quien, texto, fondo) {
             const div = document.createElement('div');
-            div.className = `mensaje-animado flex gap-4 max-w-4xl`;
+            div.className = 'mensaje-animado flex gap-4';
             div.innerHTML = `
-                <div class="w-8 h-8 rounded-full ${quien === 'IA' ? 'bg-acento' : 'bg-gray-500'} flex items-center justify-center text-sm shrink-0">
-                    ${quien === 'IA' ? 'IA' : 'Tú'}
-                </div>
-                <div class="flex-1 ${fondo} p-3 rounded-xl whitespace-pre-wrap leading-relaxed">
-                    ${texto.replace(/\n/g, '<br>')}
-                </div>
+                <div class="w-8 h-8 rounded-full ${quien==='IA'?'bg-acento':'bg-gray-500'} flex items-center justify-center shrink-0">${quien==='IA'?'IA':'Tú'}</div>
+                <div class="flex-1 ${fondo} p-3 rounded-xl whitespace-pre-wrap">${texto.replace(/\n/g,'<br>')}</div>
             `;
             chat.appendChild(div);
             return div;
         }
 
-        function agregarIndicadorCargando() {
+        function agregarCargando() {
             const div = document.createElement('div');
-            div.className = 'mensaje-animado flex gap-4 max-w-4xl';
+            div.className = 'mensaje-animado flex gap-4';
             div.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-acento flex items-center justify-center text-sm">IA</div>
-                <div class="bg-ia p-3 rounded-xl flex items-center">
-                    <div class="typing"></div>
-                    <div class="typing"></div>
-                    <div class="typing"></div>
-                </div>
+                <div class="w-8 h-8 rounded-full bg-acento flex items-center justify-center">IA</div>
+                <div class="bg-ia p-3 rounded-xl typing"><span></span><span></span><span></span></div>
             `;
             chat.appendChild(div);
             return div;
@@ -288,14 +246,13 @@ PAGINA_HTML = """
         function nuevoChat() {
             chat.innerHTML = `
                 <div class="mensaje-animado flex gap-4">
-                    <div class="w-8 h-8 rounded-full bg-acento flex items-center justify-center text-sm">IA</div>
-                    <div class="flex-1">
+                    <div class="w-8 h-8 rounded-full bg-acento flex items-center justify-center">IA</div>
+                    <div>
                         <p class="text-lg font-medium mb-1">¡Hola! Soy tu asistente con Gemini</p>
-                        <p class="opacity-90">Escribe cualquier pregunta o usa <code class="bg-gray-700 px-1 rounded">/ayuda</code> para ver todos los comandos disponibles.</p>
+                        <p class="opacity-90">Escribe cualquier pregunta o usa <code class="bg-gray-700 px-1 rounded">/ayuda</code></p>
                     </div>
                 </div>
             `;
-            inputTexto.focus();
         }
 
         formulario.addEventListener('submit', enviarMensaje);
@@ -305,7 +262,7 @@ PAGINA_HTML = """
 """
 
 # --------------------------
-# 🚀 INICIO DE LA APLICACIÓN
+# 🚀 ARRANQUE
 # --------------------------
 app = Flask(__name__)
 
